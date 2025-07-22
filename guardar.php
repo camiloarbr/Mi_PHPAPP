@@ -1,28 +1,27 @@
 <?php
 // guardar.php
-// Recibe el nombre del formulario y lo guarda en la base de datos
+// Procesa el guardado del nombre y redirige con mensaje
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Incluir la conexión a la base de datos
-    require 'conexion.php';
-
-    // Obtener el nombre enviado por el formulario y limpiar entrada
+    require_once 'conexion.php';
     $nombre = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
-
     if ($nombre !== '') {
-        // Preparar la consulta para evitar inyección SQL
+        $conn = obtenerConexion();
         $stmt = $conn->prepare('INSERT INTO usuarios (nombre) VALUES (?)');
         $stmt->bind_param('s', $nombre);
         if ($stmt->execute()) {
-            echo 'Nombre guardado correctamente.';
+            $mensaje = 'Nombre guardado correctamente.';
         } else {
-            echo 'Error al guardar el nombre: ' . $stmt->error;
+            $mensaje = 'Error al guardar el nombre: ' . $stmt->error;
         }
         $stmt->close();
+        $conn->close();
     } else {
-        echo 'El nombre no puede estar vacío.';
+        $mensaje = 'El nombre no puede estar vacío.';
     }
-    $conn->close();
+    header('Location: index.php?mensaje=' . urlencode($mensaje));
+    exit;
 } else {
-    echo 'Acceso no permitido.';
+    header('Location: index.php?mensaje=' . urlencode('Acceso no permitido.'));
+    exit;
 } 
